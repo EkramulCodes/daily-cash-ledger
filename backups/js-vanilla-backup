@@ -1,0 +1,70 @@
+// app.js - Main App Orchestrator for single index.html
+
+import { renderClientLedger } from './client-ledger.js';
+import { renderSalaryLedger } from './salary-ledger.js';
+import { renderMainLedger } from './main-ledger.js';
+import { initTheme, toggleDarkMode, initConverter } from './ledger-utils.js';
+
+const tabs = {
+    'main': renderMainLedger,
+    'client': renderClientLedger,
+    'salary': renderSalaryLedger
+};
+
+function initApp() {
+    // App shell
+    const appContainer = document.getElementById('app-container');
+    if (!appContainer) {
+        document.body.innerHTML = '<h1>Error: App container not found</h1>';
+        return;
+    }
+
+    // Shared header
+    const header = `
+    <header class="no-print">
+      <div class="brand">
+        <img src="./public/logo.png" alt="EME AIR INTERNATIONAL" class="brand-logo">
+      </div>
+      <nav class="ledger-tabs">
+        <button class="tab-btn active" data-tab="main">Cash Ledger</button>
+        <button class="tab-btn" data-tab="client">Client Ledger</button>
+        <button class="tab-btn" data-tab="salary">Salary Ledger</button>
+      </nav>
+      <div class="tools-top">
+        <button id="themeToggle" class="btn-icon" onclick="toggleDarkMode()">🌙</button>
+        <div class="converter-mini">
+          <span>USD to BDT: </span>
+          <input type="number" id="usdInput" placeholder="USD">
+          <span>×</span>
+          <input type="number" id="rateInput" value="122">
+          <strong id="bdtResult">৳0</strong>
+        </div> 
+      </div>
+    </header>
+  `;
+    appContainer.innerHTML = header + '<div id="ledger-container"></div><footer>Developed by Devnox IT</footer>';
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = () => switchTab(btn.dataset.tab);
+    });
+
+    // Init shared
+    initTheme();
+    initConverter();
+
+    // Load default tab
+    switchTab('main');
+}
+
+function switchTab(tabName) {
+    const container = document.getElementById('ledger-container');
+    const btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+    const renderFn = tabs[tabName];
+    if (renderFn) renderFn(container);
+}
+
+window.initApp = initApp; // Global for index.html
